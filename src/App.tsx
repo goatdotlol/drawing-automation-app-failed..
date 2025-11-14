@@ -2,6 +2,8 @@ import { useState } from "react";
 import Sidebar from "./components/layout/Sidebar";
 import MainArea from "./components/layout/MainArea";
 import ImageUpload from "./components/upload/ImageUpload";
+import SettingsPage from "./components/settings/SettingsPage";
+import DrawPage from "./components/drawing/DrawPage";
 
 function App() {
   const [activeSection, setActiveSection] = useState("upload");
@@ -11,12 +13,7 @@ function App() {
       case "upload":
         return <ImageUpload />;
       case "settings":
-        return (
-          <div className="text-white">
-            <h2 className="text-2xl font-bold mb-4">Settings</h2>
-            <p className="text-discord-text-secondary">Settings panel coming soon...</p>
-          </div>
-        );
+        return <SettingsPage />;
       case "history":
         return (
           <div className="text-white">
@@ -25,12 +22,7 @@ function App() {
           </div>
         );
       case "draw":
-        return (
-          <div className="text-white">
-            <h2 className="text-2xl font-bold mb-4">Draw</h2>
-            <p className="text-discord-text-secondary">Drawing panel coming soon...</p>
-          </div>
-        );
+        return <DrawPage />;
       default:
         return <ImageUpload />;
     }
