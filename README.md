@@ -30,10 +30,12 @@ A lightweight, high-performance desktop drawing automation application with a Di
 
 1. Push this repo to GitHub (see [CODESPACES_SETUP.md](./CODESPACES_SETUP.md))
 2. Open in Codespaces (click "Code" → "Codespaces" → "Create codespace")
-3. Everything is pre-installed! Just run `npm run tauri dev`
-4. **Total data cost: ~60MB** vs 5GB+ locally
+3. **For UI development**: Run `npm run dev` (Vite only, instant hot reload)
+4. **For Windows builds**: Use GitHub Actions (see [CODESPACES_DEVELOPMENT.md](./CODESPACES_DEVELOPMENT.md))
+5. **Total data cost: ~60MB** vs 5GB+ locally
 
-👉 **See [CODESPACES_SETUP.md](./CODESPACES_SETUP.md) for step-by-step guide**
+👉 **See [CODESPACES_SETUP.md](./CODESPACES_SETUP.md) for setup**
+👉 **See [CODESPACES_DEVELOPMENT.md](./CODESPACES_DEVELOPMENT.md) for development workflow**
 
 ### Local Development (Alternative)
 

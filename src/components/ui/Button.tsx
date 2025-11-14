@@ -1,10 +1,11 @@
-import { ButtonHTMLAttributes, forwardRef } from "react";
-import { motion } from "framer-motion";
+import React, { forwardRef } from "react";
+import { motion, HTMLMotionProps } from "framer-motion";
 
-interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
+interface ButtonProps extends Omit<HTMLMotionProps<"button">, "children"> {
   variant?: "primary" | "secondary" | "danger" | "ghost";
   size?: "sm" | "md" | "lg";
   isLoading?: boolean;
+  children?: React.ReactNode;
 }
 
 const Button = forwardRef<HTMLButtonElement, ButtonProps>(
@@ -31,9 +32,9 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         ref={ref}
         className={classes}
         disabled={disabled || isLoading}
-        whileHover={!disabled && !isLoading ? { scale: 1.02 } : {}}
-        whileTap={!disabled && !isLoading ? { scale: 0.98 } : {}}
-        {...props}
+        whileHover={!disabled && !isLoading ? { scale: 1.02 } : undefined}
+        whileTap={!disabled && !isLoading ? { scale: 0.98 } : undefined}
+        {...(props as HTMLMotionProps<"button">)}
       >
         {isLoading ? (
           <span className="flex items-center justify-center gap-2">

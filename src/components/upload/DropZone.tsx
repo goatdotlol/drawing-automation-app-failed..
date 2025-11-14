@@ -1,6 +1,6 @@
 import { useCallback, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Upload, CheckCircle, XCircle, Image as ImageIcon } from "lucide-react";
+import { Upload, CheckCircle } from "lucide-react";
 import { useImageStore } from "../../stores/imageStore";
 import { ToastContainer, Toast } from "../ui/Toast";
 

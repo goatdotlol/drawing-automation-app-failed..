@@ -39,6 +39,7 @@ jobs:
         releaseDraft: true
         prerelease: false
         args: --target x86_64-pc-windows-msvc
+        includeUpdaterArtifacts: false
 
   build-linux:
     runs-on: ubuntu-latest
