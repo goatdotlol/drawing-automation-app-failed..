@@ -1,0 +1,50 @@
+# Drawing Automation App - Cursor Rules
+
+## Project Goals
+- Lightweight, fast, professional-grade drawing automation
+- Discord-inspired modern UI with rounded edges
+- Multiple sophisticated drawing algorithms
+- Cross-platform desktop app using Tauri
+
+## Code Style
+- TypeScript strict mode ALWAYS
+- Functional components with hooks
+- Custom hooks for complex logic
+- Descriptive variable names (but concise in loops: i, j, x, y)
+- Comments for complex algorithms only
+- Error handling in every function
+
+## UI/UX Principles
+- NO EMOJIS - Use Lucide React icons only
+- Rounded corners: 8px minimum, 16px for cards
+- Smooth transitions: 200-300ms
+- TailwindCSS ONLY - No custom CSS unless absolutely necessary
+- Dark mode first, light mode optional
+- Responsive but desktop-optimized
+
+## Performance Requirements
+- Bundle size < 15MB
+- Startup time < 500ms
+- RAM usage < 50MB idle
+- Smooth 60fps animations
+- Instant UI feedback
+
+## Rust Backend
+- Handle ALL heavy computation in Rust
+- Image processing: Use image crate
+- Mouse automation: Use enigo
+- Expose minimal commands to frontend
+- Comprehensive error handling
+
+## Testing
+- Unit tests for algorithms
+- Integration tests for Tauri commands
+- Manual testing for mouse automation
+- Performance benchmarks
+
+## Security
+- No unsafe Rust unless necessary
+- Validate ALL user inputs
+- Sandbox mouse automation
+- No network access unless specified
+
