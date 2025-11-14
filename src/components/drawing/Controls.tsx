@@ -1,4 +1,4 @@
-import { Play, Settings, Eye } from "lucide-react";
+import { Play, Eye } from "lucide-react";
 import { useState } from "react";
 import { useDrawingStore } from "../../stores/drawingStore";
 import { useImageStore } from "../../stores/imageStore";
@@ -10,7 +10,7 @@ export default function Controls() {
   const { image } = useImageStore();
   const { drawingMethod, speed, canvasBounds, isCalibrated } = useSettingsStore();
   const { startDrawing } = useDrawingStore();
-  const [showPreview, setShowPreview] = useState(false);
+  const [, setShowPreview] = useState(false);
 
   const canStart = image && isCalibrated && canvasBounds;
 
