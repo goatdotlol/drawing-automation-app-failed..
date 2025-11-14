@@ -2,6 +2,16 @@ pub mod matrix_dot;
 pub mod dithering;
 pub mod continuous_line;
 pub mod spiral_raster;
+pub mod scanline;
+pub mod stippling;
+pub mod contour;
+
+pub use matrix_dot::MatrixDotEngine;
+pub use dithering::FloydSteinbergEngine;
+pub use spiral_raster::SpiralRasterEngine;
+pub use scanline::ScanlineEngine;
+pub use stippling::StipplingEngine;
+pub use contour::ContourVectorEngine;
 
 use serde::{Deserialize, Serialize};
 

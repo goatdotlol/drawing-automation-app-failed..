@@ -1,28 +1,80 @@
-import { Play, Settings, Eye } from "lucide-react";
+import { Play, Eye } from "lucide-react";
 import { useState } from "react";
 import { useDrawingStore } from "../../stores/drawingStore";
 import { useImageStore } from "../../stores/imageStore";
 import { useSettingsStore } from "../../stores/settingsStore";
+import { startDrawing as startDrawingCommand, stopDrawing as stopDrawingCommand, pauseDrawing as pauseDrawingCommand, resumeDrawing as resumeDrawingCommand } from "../../utils/tauriCommands";
+import { fileToUint8Array, uint8ArrayToNumberArray } from "../../utils/imageUtils";
 import Button from "../ui/Button";
 import Card from "../ui/Card";
+import Countdown from "./Countdown";
+import Preview from "./Preview";
+import { ToastContainer, Toast } from "../ui/Toast";
 
 export default function Controls() {
-  const { image } = useImageStore();
-  const { drawingMethod, speed, canvasBounds, isCalibrated } = useSettingsStore();
-  const { startDrawing } = useDrawingStore();
+  const { image, imageUrl } = useImageStore();
+  const { drawingMethod, speed, canvasBounds, isCalibrated, colorPalette } = useSettingsStore();
+  const { startDrawing: setDrawingState } = useDrawingStore();
   const [showPreview, setShowPreview] = useState(false);
+  const [showCountdown, setShowCountdown] = useState(false);
+  const [toasts, setToasts] = useState<Toast[]>([]);
 
   const canStart = image && isCalibrated && canvasBounds;
 
+  const addToast = (type: Toast["type"], message: string) => {
+    const id = Math.random().toString(36).substring(7);
+    setToasts((prev) => [...prev, { id, type, message }]);
+  };
+
+  const removeToast = (id: string) => {
+    setToasts((prev) => prev.filter((t) => t.id !== id));
+  };
+
   const handleStart = async () => {
-    if (!canStart) return;
-    // TODO: Call Tauri command to start drawing
-    startDrawing();
+    if (!canStart || !image || !canvasBounds) {
+      addToast("error", "Please complete all setup steps first");
+      return;
+    }
+
+    setShowCountdown(true);
+  };
+
+  const handleCountdownComplete = async () => {
+    setShowCountdown(false);
+    
+    try {
+      // Convert image file to Uint8Array
+      const imageData = await fileToUint8Array(image);
+      const imageArray = uint8ArrayToNumberArray(imageData);
+
+      // Call Tauri command
+      await startDrawingCommand({
+        image_data: imageArray,
+        method: drawingMethod,
+        speed,
+        canvas_bounds: {
+          x: canvasBounds.x,
+          y: canvasBounds.y,
+          width: canvasBounds.width,
+          height: canvasBounds.height,
+        },
+        color_palette: colorPalette,
+      });
+
+      setDrawingState();
+      addToast("success", "Drawing started!");
+    } catch (error: any) {
+      console.error("Failed to start drawing:", error);
+      addToast("error", `Failed to start drawing: ${error.message || error}`);
+    }
+  };
+
+  const handleCountdownCancel = () => {
+    setShowCountdown(false);
   };
 
   const handlePreview = () => {
     setShowPreview(true);
-    // TODO: Show preview overlay
   };
 
   return (
@@ -88,6 +140,12 @@ export default function Controls() {
           </p>
         </div>
       </div>
+
+      {showCountdown && (
+        <Countdown onComplete={handleCountdownComplete} onCancel={handleCountdownCancel} />
+      )}
+      <Preview isOpen={showPreview} onClose={() => setShowPreview(false)} />
+      <ToastContainer toasts={toasts} onClose={removeToast} />
     </Card>
   );
 }

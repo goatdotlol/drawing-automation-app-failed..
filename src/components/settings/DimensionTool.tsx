@@ -41,11 +41,15 @@ export default function DimensionTool() {
 
   const handleCaptureScreen = async () => {
     setIsCapturing(true);
-    // TODO: Implement screenshot capture via Tauri
-    setTimeout(() => {
+    try {
+      const { captureScreenshot } = await import("../../utils/tauriCommands");
+      await captureScreenshot();
+      // Screenshot captured, selection overlay would show here
       setIsCapturing(false);
-      // Show selection overlay
-    }, 1000);
+    } catch (error) {
+      console.error("Failed to capture screenshot:", error);
+      setIsCapturing(false);
+    }
   };
 
   return (

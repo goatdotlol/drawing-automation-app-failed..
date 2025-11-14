@@ -1,5 +1,6 @@
 import { Upload, Settings, History, Play } from "lucide-react";
 import { motion } from "framer-motion";
+import ThemeSelector from "./ThemeSelector";
 
 interface SidebarProps {
   activeSection: string;
@@ -47,6 +48,8 @@ export default function Sidebar({ activeSection, onSectionChange }: SidebarProps
           })}
         </ul>
       </nav>
+      
+      <ThemeSelector />
     </div>
   );
 }

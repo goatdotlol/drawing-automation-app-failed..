@@ -5,8 +5,7 @@ mod drawing_engine;
 mod mouse_control;
 mod image_processing;
 
-use drawing_engine::{DrawingMethod, DrawingConfig, DrawingPoint, CanvasBounds, DrawingEngine};
-use drawing_engine::matrix_dot::MatrixDotEngine;
+use drawing_engine::{DrawingMethod, DrawingConfig, DrawingPoint, CanvasBounds, DrawingEngine, MatrixDotEngine, FloydSteinbergEngine, SpiralRasterEngine, ScanlineEngine, StipplingEngine, ContourVectorEngine};
 use mouse_control::automation::MouseAutomation;
 use mouse_control::path_optimizer::optimize_path;
 use serde::{Deserialize, Serialize};
@@ -29,7 +28,9 @@ struct CanvasBoundsRequest {
     height: u32,
 }
 
-static AUTOMATION: Mutex<Option<MouseAutomation>> = Mutex::new(None);
+use std::sync::Arc;
+
+static AUTOMATION: Mutex<Option<Arc<Mutex<MouseAutomation>>>> = Mutex::new(None);
 
 #[tauri::command]
 fn start_drawing(request: StartDrawingRequest) -> Result<String, String> {
@@ -38,6 +39,9 @@ fn start_drawing(request: StartDrawingRequest) -> Result<String, String> {
         "floyd-steinberg" => DrawingMethod::FloydSteinberg,
         "continuous-line" => DrawingMethod::ContinuousLine,
         "spiral-raster" => DrawingMethod::SpiralRaster,
+        "scanline" => DrawingMethod::Scanline,
+        "stippling" => DrawingMethod::Stippling,
+        "contour-vector" => DrawingMethod::ContourVector,
         _ => return Err("Unknown drawing method".to_string()),
     };
 
@@ -56,16 +60,33 @@ fn start_drawing(request: StartDrawingRequest) -> Result<String, String> {
     // Process image based on method
     let engine: Box<dyn DrawingEngine> = match config.method {
         DrawingMethod::MatrixDot => Box::new(MatrixDotEngine),
-        _ => return Err("Method not yet implemented".to_string()),
+        DrawingMethod::FloydSteinberg => Box::new(FloydSteinbergEngine),
+        DrawingMethod::SpiralRaster => Box::new(SpiralRasterEngine),
+        DrawingMethod::Scanline => Box::new(ScanlineEngine),
+        DrawingMethod::Stippling => Box::new(StipplingEngine),
+        DrawingMethod::ContourVector => Box::new(ContourVectorEngine),
+        DrawingMethod::ContinuousLine => {
+            use drawing_engine::continuous_line::ContinuousLineEngine;
+            Box::new(ContinuousLineEngine)
+        },
     };
 
     let points = engine.process_image(request.image_data, &config);
     let optimized_points = optimize_path(points);
 
+    // Create and store automation instance
+    let automation = Arc::new(Mutex::new(MouseAutomation::new()));
+    {
+        let mut auto_guard = AUTOMATION.lock().unwrap();
+        *auto_guard = Some(automation.clone());
+    }
+
     // Start mouse automation (in a separate thread)
+    let automation_clone = automation.clone();
+    let speed = config.speed;
     std::thread::spawn(move || {
-        let mut automation = MouseAutomation::new();
-        let _ = automation.start_drawing(optimized_points, config.speed, |current, total| {
+        let mut auto = automation_clone.lock().unwrap();
+        let _ = auto.start_drawing(optimized_points, speed, |current, total| {
             // Progress callback - could emit event to frontend
             println!("Progress: {}/{}", current, total);
         });
@@ -76,9 +97,10 @@ fn start_drawing(request: StartDrawingRequest) -> Result<String, String> {
 
 #[tauri::command]
 fn stop_drawing() -> Result<String, String> {
-    if let Ok(mut automation) = AUTOMATION.lock() {
+    if let Ok(automation) = AUTOMATION.lock() {
         if let Some(ref auto) = *automation {
-            // Stop logic
+            let auto = auto.lock().unwrap();
+            auto.stop();
         }
     }
     Ok("Drawing stopped".to_string())
@@ -86,24 +108,82 @@ fn stop_drawing() -> Result<String, String> {
 
 #[tauri::command]
 fn pause_drawing() -> Result<String, String> {
+    if let Ok(automation) = AUTOMATION.lock() {
+        if let Some(ref auto) = *automation {
+            let auto = auto.lock().unwrap();
+            auto.pause();
+        }
+    }
     Ok("Drawing paused".to_string())
 }
 
 #[tauri::command]
 fn resume_drawing() -> Result<String, String> {
+    if let Ok(automation) = AUTOMATION.lock() {
+        if let Some(ref auto) = *automation {
+            let auto = auto.lock().unwrap();
+            auto.resume();
+        }
+    }
     Ok("Drawing resumed".to_string())
 }
 
 #[tauri::command]
 fn capture_screenshot() -> Result<Vec<u8>, String> {
-    // TODO: Implement screenshot capture using screenshots crate
-    Err("Not implemented yet".to_string())
+    use screenshots::Screen;
+    use std::io::Cursor;
+    
+    let screens = Screen::all().map_err(|e| format!("Failed to get screens: {}", e))?;
+    if screens.is_empty() {
+        return Err("No screens found".to_string());
+    }
+    
+    let screen = &screens[0];
+    let image = screen.capture().map_err(|e| format!("Failed to capture: {}", e))?;
+    
+    // Convert to PNG bytes
+    let mut buffer = Cursor::new(Vec::new());
+    image.write_to(&mut buffer, image::ImageOutputFormat::Png)
+        .map_err(|e| format!("Failed to encode image: {}", e))?;
+    
+    Ok(buffer.into_inner())
 }
 
 #[tauri::command]
 fn detect_color_palette(image_data: Vec<u8>) -> Result<Vec<String>, String> {
-    // TODO: Implement color palette detection
-    Ok(vec!["#000000".to_string(), "#FFFFFF".to_string()])
+    use image::DynamicImage;
+    use std::collections::HashMap;
+    
+    let img = image::load_from_memory(&image_data)
+        .map_err(|e| format!("Failed to load image: {}", e))?;
+    
+    let (width, height) = img.dimensions();
+    let mut color_counts: HashMap<String, u32> = HashMap::new();
+    
+    // Sample colors from image (every 10th pixel for performance)
+    for y in (0..height).step_by(10) {
+        for x in (0..width).step_by(10) {
+            let pixel = img.get_pixel(x, y);
+            let r = pixel[0];
+            let g = pixel[1];
+            let b = pixel[2];
+            
+            // Quantize colors to reduce palette size
+            let qr = (r / 32) * 32;
+            let qg = (g / 32) * 32;
+            let qb = (b / 32) * 32;
+            
+            let color = format!("#{:02x}{:02x}{:02x}", qr, qg, qb);
+            *color_counts.entry(color).or_insert(0) += 1;
+        }
+    }
+    
+    // Get top 10 most common colors
+    let mut colors: Vec<(String, u32)> = color_counts.into_iter().collect();
+    colors.sort_by(|a, b| b.1.cmp(&a.1));
+    colors.truncate(10);
+    
+    Ok(colors.into_iter().map(|(color, _)| color).collect())
 }
 
 fn main() {

@@ -1,8 +1,10 @@
 import { Target, MousePointer2, Save } from "lucide-react";
 import { useState } from "react";
 import { useSettingsStore } from "../../stores/settingsStore";
+import { captureScreenshot } from "../../utils/tauriCommands";
 import Card from "../ui/Card";
 import Button from "../ui/Button";
+import SelectionOverlay from "./SelectionOverlay";
 
 type DetectionMode = "auto" | "manual" | "preset";
 
@@ -16,6 +18,7 @@ export default function CanvasDetection() {
   const { canvasBounds, setCanvasBounds, isCalibrated, setCalibrated } = useSettingsStore();
   const [mode, setMode] = useState<DetectionMode>("auto");
   const [isDetecting, setIsDetecting] = useState(false);
+  const [showSelection, setShowSelection] = useState(false);
 
   const handleAutoDetect = async () => {
     setIsDetecting(true);
@@ -28,9 +31,26 @@ export default function CanvasDetection() {
     }, 2000);
   };
 
-  const handleManualSelect = () => {
-    // TODO: Open selection overlay
+  const handleManualSelect = async () => {
     setMode("manual");
+    try {
+      await captureScreenshot();
+      setShowSelection(true);
+    } catch (error) {
+      console.error("Failed to capture screenshot:", error);
+      setShowSelection(true); // Show anyway for manual selection
+    }
+  };
+
+  const handleSelectionComplete = (bounds: { x: number; y: number; width: number; height: number }) => {
+    setCanvasBounds({
+      x: bounds.x,
+      y: bounds.y,
+      width: bounds.width,
+      height: bounds.height,
+    });
+    setCalibrated(true);
+    setShowSelection(false);
   };
 
   const handlePresetSelect = (preset: typeof presets[0]) => {
@@ -146,6 +166,13 @@ export default function CanvasDetection() {
           )}
         </div>
       </div>
+
+      {showSelection && (
+        <SelectionOverlay
+          onSelect={handleSelectionComplete}
+          onClose={() => setShowSelection(false)}
+        />
+      )}
     </Card>
   );
 }

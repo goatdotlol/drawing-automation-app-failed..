@@ -20,6 +20,8 @@ image = "0.25"
 enigo = "0.2"
 screenshots = "0.7"
 fast_image_resize = "3.0"
+png = "0.18"
+rand = "0.8"
 
 [features]
 # This feature is used for production builds or when `devPath` points to the filesystem

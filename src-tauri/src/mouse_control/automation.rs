@@ -1,6 +1,6 @@
 use enigo::*;
 use crate::drawing_engine::DrawingPoint;
-use std::time::{Duration, Instant};
+use std::time::Duration;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 
@@ -47,14 +47,14 @@ impl MouseAutomation {
                 std::thread::sleep(Duration::from_millis(100));
             }
 
-            // Move mouse to position
+            // Move mouse to position (enigo handles smooth movement internally)
             self.enigo.mouse_move_to(point.x, point.y);
             std::thread::sleep(delay);
 
             // Click if needed (for dot placement)
             if point.size > 0 {
                 self.enigo.mouse_click(MouseButton::Left);
-                std::thread::sleep(delay);
+                std::thread::sleep(delay / 2);
             }
 
             // Report progress

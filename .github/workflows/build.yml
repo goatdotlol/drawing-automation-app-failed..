@@ -36,7 +36,7 @@ jobs:
         tagName: v__VERSION__
         releaseName: 'Drawing Automation App v__VERSION__'
         releaseBody: 'See the assets to download and install this version.'
-        releaseDraft: true
+        releaseDraft: false
         prerelease: false
         args: --target x86_64-pc-windows-msvc
 

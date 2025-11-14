@@ -1,5 +1,6 @@
 import { Play, Pause, Square, Clock } from "lucide-react";
 import { useDrawingStore } from "../../stores/drawingStore";
+import { stopDrawing as stopDrawingCommand, pauseDrawing as pauseDrawingCommand, resumeDrawing as resumeDrawingCommand } from "../../utils/tauriCommands";
 import Card from "../ui/Card";
 import Button from "../ui/Button";
 
@@ -12,10 +13,37 @@ export default function DrawingProgress() {
     totalRows,
     timeElapsed,
     estimatedTimeRemaining,
-    pauseDrawing,
-    resumeDrawing,
-    stopDrawing,
+    pauseDrawing: pauseState,
+    resumeDrawing: resumeState,
+    stopDrawing: stopState,
   } = useDrawingStore();
+
+  const handlePause = async () => {
+    try {
+      await pauseDrawingCommand();
+      pauseState();
+    } catch (error) {
+      console.error("Failed to pause:", error);
+    }
+  };
+
+  const handleResume = async () => {
+    try {
+      await resumeDrawingCommand();
+      resumeState();
+    } catch (error) {
+      console.error("Failed to resume:", error);
+    }
+  };
+
+  const handleStop = async () => {
+    try {
+      await stopDrawingCommand();
+      stopState();
+    } catch (error) {
+      console.error("Failed to stop:", error);
+    }
+  };
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -77,17 +105,17 @@ export default function DrawingProgress() {
 
         <div className="flex gap-2">
           {isPaused ? (
-            <Button variant="primary" onClick={resumeDrawing} className="flex-1">
+            <Button variant="primary" onClick={handleResume} className="flex-1">
               <Play size={16} className="mr-2" />
               Resume
             </Button>
           ) : (
-            <Button variant="secondary" onClick={pauseDrawing} className="flex-1">
+            <Button variant="secondary" onClick={handlePause} className="flex-1">
               <Pause size={16} className="mr-2" />
               Pause
             </Button>
           )}
-          <Button variant="danger" onClick={stopDrawing}>
+          <Button variant="danger" onClick={handleStop}>
             <Square size={16} />
           </Button>
         </div>

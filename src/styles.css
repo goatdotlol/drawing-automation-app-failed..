@@ -8,6 +8,17 @@
   box-sizing: border-box;
 }
 
+:root {
+  --discord-dark: #2b2d31;
+  --discord-darker: #1e1f22;
+  --discord-secondary: #313338;
+  --discord-accent: #5865f2;
+  --discord-text: #ffffff;
+  --discord-text-secondary: #b5bac1;
+  --discord-success: #23a559;
+  --discord-error: #f23f42;
+}
+
 body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
@@ -15,8 +26,8 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background-color: #1e1f22;
-  color: #ffffff;
+  background-color: var(--discord-darker);
+  color: var(--discord-text);
   overflow: hidden;
 }
 
@@ -24,5 +35,35 @@ body {
   width: 100vw;
   height: 100vh;
   overflow: hidden;
+}
+
+/* Smooth scrolling */
+* {
+  scroll-behavior: smooth;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--discord-dark);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--discord-secondary);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--discord-accent);
+}
+
+/* Selection */
+::selection {
+  background: var(--discord-accent);
+  color: white;
 }
 

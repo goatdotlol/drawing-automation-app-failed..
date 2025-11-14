@@ -10,16 +10,22 @@ export default function ColorPalette() {
 
   const handleAutoDetect = async () => {
     setIsDetecting(true);
-    // TODO: Implement color palette detection via Tauri
-    setTimeout(() => {
-      // Mock detected colors
+    try {
+      const { captureScreenshot, detectColorPalette } = await import("../../utils/tauriCommands");
+      const screenshot = await captureScreenshot();
+      const colors = await detectColorPalette(screenshot);
+      setColorPalette(colors);
+      setIsDetecting(false);
+    } catch (error) {
+      console.error("Failed to detect colors:", error);
+      // Fallback to mock colors
       const mockColors = [
         "#000000", "#FFFFFF", "#FF0000", "#00FF00", "#0000FF",
         "#FFFF00", "#FF00FF", "#00FFFF", "#808080", "#FFA500",
       ];
       setColorPalette(mockColors);
       setIsDetecting(false);
-    }, 2000);
+    }
   };
 
   const handleManualAdd = () => {
