@@ -47,7 +47,7 @@ impl MouseAutomation {
                 std::thread::sleep(Duration::from_millis(100));
             }
 
-            // Move mouse to position (enigo handles smooth movement internally)
+            // Move mouse to position
             self.enigo.mouse_move_to(point.x, point.y);
             std::thread::sleep(delay);
 
@@ -83,4 +83,3 @@ impl MouseAutomation {
         self.is_running.load(Ordering::Relaxed)
     }
 }
-

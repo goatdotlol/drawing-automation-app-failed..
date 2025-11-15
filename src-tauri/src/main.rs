@@ -131,7 +131,7 @@ fn resume_drawing() -> Result<String, String> {
 #[tauri::command]
 fn capture_screenshot() -> Result<Vec<u8>, String> {
     use screenshots::Screen;
-    use std::io::Cursor;
+    use image::{ImageEncoder, codecs::png::PngEncoder, ColorType};
     
     let screens = Screen::all().map_err(|e| format!("Failed to get screens: {}", e))?;
     if screens.is_empty() {
@@ -139,19 +139,23 @@ fn capture_screenshot() -> Result<Vec<u8>, String> {
     }
     
     let screen = &screens[0];
-    let image = screen.capture().map_err(|e| format!("Failed to capture: {}", e))?;
+    let captured = screen.capture().map_err(|e| format!("Failed to capture: {}", e))?;
     
-    // Convert to PNG bytes
-    let mut buffer = Cursor::new(Vec::new());
-    image.write_to(&mut buffer, image::ImageOutputFormat::Png)
-        .map_err(|e| format!("Failed to encode image: {}", e))?;
+    let width = captured.width();
+    let height = captured.height();
+    let raw = captured.rgba();
     
-    Ok(buffer.into_inner())
+    let mut buffer = Vec::new();
+    let encoder = PngEncoder::new(&mut buffer);
+    encoder.write_image(&raw, width, height, ColorType::Rgba8)
+        .map_err(|e| format!("Failed to encode PNG: {}", e))?;
+    
+    Ok(buffer)
 }
 
 #[tauri::command]
 fn detect_color_palette(image_data: Vec<u8>) -> Result<Vec<String>, String> {
-    use image::DynamicImage;
+    use image::GenericImageView;
     use std::collections::HashMap;
     
     let img = image::load_from_memory(&image_data)

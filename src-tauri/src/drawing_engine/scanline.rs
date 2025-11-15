@@ -1,3 +1,4 @@
+use image::GenericImageView;
 use super::{DrawingConfig, DrawingPoint, DrawingEngine};
 
 pub struct ScanlineEngine;
@@ -73,4 +74,3 @@ impl DrawingEngine for ScanlineEngine {
         points
     }
 }
-

@@ -1,5 +1,5 @@
 use super::{DrawingConfig, DrawingPoint, DrawingEngine};
-use image::DynamicImage;
+use image::GenericImageView;
 
 pub struct SpiralRasterEngine;
 
@@ -14,10 +14,10 @@ impl DrawingEngine for SpiralRasterEngine {
         let max_radius = (width.max(height) as f32 * 0.71) as u32; // Diagonal
         
         let mut points = Vec::new();
-        let mut angle = 0.0;
-        let mut radius = 0.0;
-        let angle_step = 0.1;
-        let radius_step = 0.5;
+        let mut angle: f32 = 0.0;
+        let mut radius: f32 = 0.0;
+        let angle_step: f32 = 0.1;
+        let radius_step: f32 = 0.5;
         
         while radius < max_radius as f32 {
             let x = (center_x as f32 + radius * angle.cos()) as u32;

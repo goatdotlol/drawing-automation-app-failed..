@@ -1,3 +1,4 @@
+use image::GenericImageView;
 use super::{DrawingConfig, DrawingPoint, DrawingEngine};
 
 pub struct ContinuousLineEngine;
@@ -75,4 +76,3 @@ impl DrawingEngine for ContinuousLineEngine {
         points
     }
 }
-
